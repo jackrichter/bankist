@@ -93,6 +93,13 @@ const formatMovementDate = function (date, locale) {
   return Intl.DateTimeFormat(locale).format(date);
 };
 
+const formatCurrency = function (value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(value);
+};
+
 // Movements
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
@@ -108,13 +115,16 @@ const displayMovements = function (acc, sort = false) {
     const date = new Date(acc.movementsDates[i]);
     const displayDate = formatMovementDate(date, acc.locale);
 
+    // Format numbers
+    const formattedMov = formatCurrency(mov, acc.locale, acc.currency);
+
     const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
         <div class="movements__date">${displayDate}</div>
-        <div class="movements__value">${mov.toFixed(2)}£</div>
+        <div class="movements__value">${formattedMov}</div>
       </div>
     `;
 
@@ -127,7 +137,11 @@ const displayMovements = function (acc, sort = false) {
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
 
-  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+  labelBalance.textContent = formatCurrency(
+    acc.balance,
+    acc.locale,
+    acc.currency
+  );
 };
 
 // Summary
@@ -135,12 +149,16 @@ const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
+  labelSumIn.textContent = formatCurrency(incomes, acc.locale, acc.currency);
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumOut.textContent = `${Math.abs(out).toFixed(2)}€`;
+  labelSumOut.textContent = formatCurrency(
+    Math.abs(out),
+    acc.locate,
+    acc.currency
+  );
 
   const interest = acc.movements
     .filter(deposit => deposit > 0)
@@ -150,7 +168,11 @@ const calcDisplaySummary = function (acc) {
       return interest >= 1;
     })
     .reduce((acc, interest) => acc + interest, 0);
-  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
+  labelSumInterest.textContent = formatCurrency(
+    interest,
+    acc.locale,
+    acc.currency
+  );
 };
 
 // Create UserName
@@ -1013,3 +1035,15 @@ const locale = navigator.language;
 // console.log(locale);
 const intlDate = Intl.DateTimeFormat(locale, options).format(nowDate);
 // console.log(intlDate);
+
+const num1 = 3888742.23;
+const options1 = { style: 'currency', unit: 'celsius', currency: 'USD' };
+// console.log('SE:   ', Intl.NumberFormat('sv-SE', options1).format(num1));
+// console.log('DK:   ', Intl.NumberFormat('da-DK', options1).format(num1));
+// console.log('DE:   ', Intl.NumberFormat('de-DE', options1).format(num1));
+// console.log('GB:   ', Intl.NumberFormat('en-GB', options1).format(num1));
+// console.log('US:   ', Intl.NumberFormat('en-US', options1).format(num1));
+// console.log(
+//   'Browser:   ',
+//   Intl.NumberFormat(navigator.language, options1).format(num1)
+// );
