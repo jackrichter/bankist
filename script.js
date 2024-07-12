@@ -200,15 +200,44 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+// Timer
+const startLogoutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
+
+    // In each call, print the remaining time to UI
+    labelTimer.textContent = `${min}:${sec}`;
+
+    // When 0 seconds, stop timer and logout user
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = `Log in to get started`;
+      containerApp.style.opacity = 0;
+    }
+
+    // Decrease time by 1 second
+    time--;
+  };
+
+  // Set time to 2 minutes
+  let time = 120;
+
+  // Call tick right away and then call the timer every one second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
+
 /////////////////////////////////////////////////
 
 // Event handlers //
-let currentAccount;
+let currentAccount, timer;
 
 // FAKE ALWAYS LOGGED IN
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 100;
 
 // Login
 btnLogin.addEventListener('click', function (e) {
@@ -257,6 +286,12 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur(); // Remove focus
 
+    // Timer: Prior to starting a timer, check if any already exists, and if so, stop it
+    if (timer) {
+      clearInterval(timer);
+    }
+    timer = startLogoutTimer();
+
     // Update UI
     updateUI(currentAccount);
   }
@@ -290,6 +325,10 @@ btnTransfer.addEventListener('click', function (e) {
 
     // Update UI
     updateUI(currentAccount);
+
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogoutTimer();
   }
 });
 
@@ -303,15 +342,21 @@ btnLoan.addEventListener('click', function (e) {
     loanAmount > 0 &&
     currentAccount.movements.some(mov => mov >= loanAmount * 0.1)
   ) {
-    // Add the loan as a deposit (a movement)
-    currentAccount.movements.push(loanAmount);
+    setTimeout(function () {
+      // Add the loan as a deposit (a movement)
+      currentAccount.movements.push(loanAmount);
 
-    // Add loan date
-    currentAccount.movementsDates.push(new Date().toISOString());
-    // console.log(account1);
+      // Add loan date
+      currentAccount.movementsDates.push(new Date().toISOString());
+      // console.log(account1);
 
-    // Update the UI
-    updateUI(currentAccount);
+      // Update the UI
+      updateUI(currentAccount);
+
+      // Reset timer
+      clearInterval(timer);
+      timer = startLogoutTimer();
+    }, 2500);
   }
 
   // Clear input field
@@ -1047,3 +1092,23 @@ const options1 = { style: 'currency', unit: 'celsius', currency: 'USD' };
 //   'Browser:   ',
 //   Intl.NumberFormat(navigator.language, options1).format(num1)
 // );
+
+/** Timers */
+
+// setTimeout
+const ingredients = ['olives', 'spinach'];
+const pizzaTimeout = setTimeout(
+  (ing1, ing2) => console.log(`Here is your pizza with ${ing1} and ${ing2} 🍕`),
+  3000,
+  ...ingredients
+);
+// console.log('Waiting...');
+if (ingredients.includes('spinach')) {
+  clearTimeout(pizzaTimeout);
+}
+
+// setInterval
+// setInterval(() => {
+//   const now = new Date();
+//   console.log(now);
+// }, 1000);
